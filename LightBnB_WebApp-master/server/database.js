@@ -69,10 +69,15 @@ exports.addUser = addUser;
  */
 const getAllReservations = function(guest_id, limit = 10) {
   const queryString = `
-  SELECT * FROM reservations
-    JOIN properties ON properties.id = property_id
-    WHERE guest_id = $1 AND end_date < now()::date
-    LIMIT $2
+  SELECT reservations.*, properties.*, avg(property_reviews.rating) as average_rating
+    FROM reservations
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE reservations.guest_id = $1
+    AND end_date < now()::date
+    GROUP BY reservations.id, properties.id
+    ORDER BY start_date
+    LIMIT $2;
   `;
   const values = [guest_id, limit];
   return pool.query(queryString, values)
@@ -149,9 +154,6 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+
 };
 exports.addProperty = addProperty;
