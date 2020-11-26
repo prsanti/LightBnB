@@ -101,15 +101,18 @@ const getAllProperties = function(options, limit = 10) {
   FROM properties
   LEFT JOIN property_reviews ON properties.id = property_id
   `;
-
+  // loops through the options parameter given by the user
   for (const option in options) {
+    // checks if the option is not null before appending to the query string
     if (options[option]) {
-      if (queryParams.length > 0) {
-        queryString += " AND ";
-      } else if (queryParams.length === 0) {
+      // checks if the query parameter is first to append WHERE otherwise AND
+      if (queryParams.length === 0) {
         queryString += "WHERE ";
+      } else {
+        queryString += " AND ";
       }
-
+      // checks each key in options, and pushes the appropriate param and string
+      // respectively into queryParams and queryString
       switch (option) {
       case "city":
         queryParams.push(`%${options.city}%`);
@@ -141,7 +144,6 @@ const getAllProperties = function(options, limit = 10) {
   ORDER BY cost_per_night
   LIMIT $${queryParams.length};
   `;
-  console.log(queryString, queryParams);
 
   return pool.query(queryString, queryParams)
     .then(res => res.rows);
